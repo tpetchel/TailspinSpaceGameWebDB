@@ -1,16 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.102
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Database", "Database\Database.sqlproj", "{8BAA5C4E-F217-4E45-8473-1EBAE2684BFF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "data", "data", "{0073F12F-0A87-451E-9FD8-126FEC256938}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\achievements.csv = ..\..\achievements.csv
-		..\..\profileAchievements.csv = ..\..\profileAchievements.csv
-		..\..\profiles.csv = ..\..\profiles.csv
-		..\..\scores.csv = ..\..\scores.csv
+		Data\achievements.csv = Data\achievements.csv
+		Data\profileAchievements.csv = Data\profileAchievements.csv
+		Data\profiles.csv = Data\profiles.csv
+		Data\scores.csv = Data\scores.csv
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IaC", "IaC", "{34E25FC2-9FE3-4275-A5AC-AEE7EABE4866}"
