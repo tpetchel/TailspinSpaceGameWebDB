@@ -1,15 +1,14 @@
 variables:
   buildConfiguration: 'Release'
-  wwwrootDir: 'Tailspin.SpaceGame.Web/wwwroot'
-  dotnetSdkVersion: '2.1.505'
+#  releaseBranchName: 'release-workflow'
 
-schedules:
-- cron: '*/5 * * * *'
-  displayName: Deploy every 5 minutes
-  branches:
-    include:
-    - master
-  always: false
+# schedules:
+# - cron: '*/5 * * * *'
+#   displayName: Deploy every 5 minutes
+#   branches:
+#     include:
+#     - release-workflow
+#   always: 'false'
 
 stages:
 - stage: 'Build'
@@ -21,6 +20,9 @@ stages:
       vmImage: 'Ubuntu-16.04'
       demands:
         - npm
+    variables:
+      wwwrootDir: 'Tailspin.SpaceGame.Web/wwwroot'
+      dotnetSdkVersion: '2.1.505'
     steps:
     - task: DotNetCoreInstaller@0
       displayName: 'Use .NET Core SDK $(dotnetSdkVersion)'
@@ -64,122 +66,81 @@ stages:
         arguments: '--no-build --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/$(buildConfiguration)'
         zipAfterPublish: true
 
-    - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifact: drop'
-      condition: succeeded()
-      inputs:
-        pathToPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: 'drop'
+    - publish: '$(Build.ArtifactStagingDirectory)'
+      artifact: drop
 
 - stage: 'DeployDev'
-  displayName: 'Deploy to Dev'
+  displayName: 'Deploy to dev environment'
   dependsOn: Build
+  # condition: |
+  #   and
+  #   (
+  #     succeeded(),
+  #     eq(variables['Build.SourceBranchName'], variables['releaseBranchName'])
+  #   )
   jobs:
-
-  - job: DeployDev
-    displayName: 'Deploy to Dev environment'
+  - deployment: Deploy
     pool:
       vmImage: 'Ubuntu-16.04'
-    steps: 
+    environment: dev
+    variables:
+    - group: 'Release Pipeline'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+          - task: AzureWebApp@1
+            displayName: 'Azure App Service Deploy: website'
+            inputs:
+              azureSubscription: 'Resource Manager - Tailspin - Space Game'
+              appName: '$(WebAppNameDev)'
+              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
 
-    - task: DownloadBuildArtifacts@0
-      inputs:
-        buildType: 'current'
-        downloadType: 'single'
-        artifactName: 'drop'
-        downloadPath: '$(Build.ArtifactStagingDirectory)'
+# - stage: 'DeployTest'
+#   displayName: 'Deploy to test environment'
+#   dependsOn: DeployDev
+#   #condition: eq(variables['Build.Reason'], 'Schedule')
+#   jobs:
+#   - deployment: Deploy
+#     pool:
+#       vmImage: 'Ubuntu-16.04'
+#     environment: test
+#     variables:
+#     - group: 'Release Pipeline'
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+#           - download: current
+#             artifact: drop
+#           - task: AzureWebApp@1
+#             displayName: 'Azure App Service Deploy: website'
+#             inputs:
+#               azureSubscription: 'Resource Manager - Tailspin - Space Game'
+#               appName: '$(WebAppNameTest)'
+#               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
 
-    - task: AzureRmWebAppDeployment@4
-      displayName: 'Azure App Service Deploy: website'
-      inputs:
-        azureSubscription: 'SandboxFake'
-        DeployToSlotOrASEFlag: true
-        ResourceGroupName: TailspinResourceGroup
-        SlotName: Dev
-        appType: 'webAppLinux'
-        WebAppName: 'TailspinGame13053'
-        StartupCommand: 'dotnet Tailspin.SpaceGame.Web.dll'
-        Package: $(System.ArtifactsDirectory)/**/*.zip
-
-- stage: 'DeployTest'
-  displayName: 'Deploy to Test environment'
-  dependsOn: 'DeployDev'
-  condition: and(succeeded(), eq(variables['Build.Reason'], 'Schedule'))
-  jobs:
-
-  - job: DeployTest
-    displayName: 'Deploy test job'
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    steps: 
-
-    - task: DownloadBuildArtifacts@0
-      inputs:
-        buildType: 'current'
-        downloadType: 'single'
-        artifactName: 'drop'
-        downloadPath: '$(Build.ArtifactStagingDirectory)'
-
-    - task: AzureRmWebAppDeployment@4
-      displayName: 'Azure App Service Deploy: website'
-      inputs:
-        azureSubscription: 'SandboxFake'
-        DeployToSlotOrASEFlag: true
-        ResourceGroupName: TailspinResourceGroup
-        SlotName: Test
-        appType: 'webAppLinux'
-        WebAppName: 'TailspinGame13053'
-        StartupCommand: 'dotnet Tailspin.SpaceGame.Web.dll'
-        Package: $(System.ArtifactsDirectory)/**/*.zip
-
-- stage: 'DeployStaging'
-  displayName: 'Deploy to staging environment'
-  dependsOn: 'DeployDev'
-  condition: and(succeeded(), eq(variables['Build.Reason'], 'Schedule'))
-  jobs:
-
-  - job: DeployTest
-    displayName: 'Deploy staging job'
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    steps: 
-
-    - task: DownloadBuildArtifacts@0
-      inputs:
-        buildType: 'current'
-        downloadType: 'single'
-        artifactName: 'drop'
-        downloadPath: '$(Build.ArtifactStagingDirectory)'
-
-    - task: AzureRmWebAppDeployment@4
-      displayName: 'Azure App Service Deploy: website'
-      inputs:
-        azureSubscription: 'SandboxFake'
-        DeployToSlotOrASEFlag: true
-        ResourceGroupName: TailspinResourceGroup
-        SlotName: Staging
-        appType: 'webAppLinux'
-        WebAppName: 'TailspinGame13053'
-        StartupCommand: 'dotnet Tailspin.SpaceGame.Web.dll'
-        Package: $(System.ArtifactsDirectory)/**/*.zip
-
-- stage: 'SwapStaging'
-  displayName: 'Swap staging to production'
-  dependsOn: 'DeployDev'
-  condition: succeeded()
-  jobs:
-
-  - job: SwapStaging
-    displayName: 'Swap staging job'
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    steps: 
-
-#  Swap slots - wrong slots for now. just testing. 
-    - task: AzureAppServiceManage@0
-      displayName: Swap Slot Prod
-      inputs:
-        azureSubscription: 'SandboxFake'
-        WebAppName: 'TailspinGame13053'
-        ResourceGroupName: 'TailspinResourceGroup'
-        SourceSlot: 'Dev'
+# - stage: 'DeployStaging'
+#   displayName: 'Deploy to staging environment'
+#   dependsOn: DeployTest
+#   jobs:
+#   - deployment: Deploy
+#     pool:
+#       vmImage: 'Ubuntu-16.04'
+#     environment: staging
+#     variables:
+#     - group: 'Release Pipeline'
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+#           - download: current
+#             artifact: drop
+#           - task: AzureWebApp@1
+#             displayName: 'Azure App Service Deploy: website'
+#             inputs:
+#               azureSubscription: 'Resource Manager - Tailspin - Space Game'
+#               appName: '$(WebAppNameStaging)'
+#               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
