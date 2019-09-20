@@ -1,0 +1,10 @@
+C:\Users\judyi\Desktop\Learn_and_SQL\Files to add to git project\Database\bin\Debug\Database.dacpac
+C:\Users\judyi\Desktop\Learn_and_SQL\Files to add to git project\Database\bin\Debug\Database.dll
+C:\Users\judyi\Desktop\Learn_and_SQL\Files to add to git project\Database\bin\Debug\Database.pdb
+C:\Users\judyi\Desktop\Learn_and_SQL\Files to add to git project\Database\obj\Debug\Database.sqlprojAssemblyReference.cache
+C:\Users\judyi\Desktop\Learn_and_SQL\Files to add to git project\Database\obj\Debug\Model.xml
+C:\Users\judyi\Desktop\Learn_and_SQL\Files to add to git project\Database\obj\Debug\refactor.xml
+C:\Users\judyi\Desktop\Learn_and_SQL\Files to add to git project\Database\obj\Debug\postdeploy.sql
+C:\Users\judyi\Desktop\Learn_and_SQL\Files to add to git project\Database\obj\Debug\predeploy.sql
+C:\Users\judyi\Desktop\Learn_and_SQL\Files to add to git project\Database\obj\Debug\Database.dll
+C:\Users\judyi\Desktop\Learn_and_SQL\Files to add to git project\Database\obj\Debug\Database.pdb
