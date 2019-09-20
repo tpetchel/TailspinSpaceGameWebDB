@@ -1,5 +1,4 @@
-# This is an IaC script to provision the web and database into azure
-# for the ms-learn module for DB's
+# This script provisions the web and database in Azure
 #
 [CmdletBinding()]
 param(
